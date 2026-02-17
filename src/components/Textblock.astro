@@ -1,0 +1,8 @@
+---
+export interface Props {
+  content: string;   // HTML from MODX
+}
+
+const { content } = Astro.props;
+---
+<article class="prose prose-lg max-w-4xl mx-auto py-8 px-4" set:html={content} />

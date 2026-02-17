@@ -1,0 +1,14 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string;
+  image?: string;
+}
+
+const { title, subtitle, image } = Astro.props;
+---
+<section class="bg-slate-100 py-16 px-4 text-center">
+  {image && <img src={image} alt="" class="mx-auto mb-6 max-h-64" />}
+  <h1 class="text-4xl font-bold text-gray-900">{title}</h1>
+  {subtitle && <p class="text-xl text-gray-600 mt-2">{subtitle}</p>}
+</section>

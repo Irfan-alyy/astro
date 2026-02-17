@@ -1,0 +1,15 @@
+---
+export interface Props {
+  images: { url: string; caption?: string }[];
+}
+
+const { images } = Astro.props;
+---
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+  {images.map(img => (
+    <figure>
+      <img src={img.url} alt={img.caption} class="w-full h-auto" />
+      {img.caption && <figcaption class="text-sm text-gray-600 mt-1">{img.caption}</figcaption>}
+    </figure>
+  ))}
+</div>
