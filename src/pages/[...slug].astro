@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import TextBlock from '../components/TextBlock.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  
+  console.log('Total pages:', pages.length);
+  
+  const paths = pages.map(page => {
+    console.log('Page ID:', page.id, 'Slug:', page.data?.slug);
+    
+    const slug = page.data?.slug || '';
+    let slugParts = slug === '' || slug === '/' ? [] : [slug];
+    
+    return {
+      params: { slug: slugParts },
+      props: { page },
+    };
+  });
+  
+  console.log('Generated paths:', paths.map(p => p.params.slug));
+  return paths;
+}
+
+const { page } = Astro.props;
+const { data, body } = page;
+---
+
+<BaseLayout title={data?.title || 'Untitled'}>
+  <Hero title={data?.title || 'Untitled'} description={data?.description || ''} />
+  {body && <TextBlock content={body} />}
+</BaseLayout>
