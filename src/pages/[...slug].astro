@@ -2,31 +2,41 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
-import TextBlock from '../components/TextBlock.astro';
+import TextBlock from '../components/Textblock.astro';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  
   console.log('Total pages:', pages.length);
-  
+
   const paths = pages.map(page => {
-    console.log('Page ID:', page.id, 'Slug:', page.data?.slug);
-    
-    const slug = page.data?.slug || '';
-    let slugParts = slug === '' || slug === '/' ? [] : [slug];
-    
+    const entrySlug = page.slug ?? (page.data && page.data.slug) ?? '';
+    const cleaned = entrySlug === '/' ? '' : String(entrySlug).replace(/^\/+|\/+$/g, '');
+    const slugParam = cleaned === '' ? undefined : cleaned; // string or undefined
+
+    console.log(`Processing page: ${page.id}`);
+    console.log(`  - Entry slug: "${entrySlug}" -> ${slugParam === undefined ? 'homepage' : `"${slugParam}"`}`);
+
     return {
-      params: { slug: slugParts },
+      params: { slug: slugParam },
       props: { page },
     };
   });
-  
-  console.log('Generated paths:', paths.map(p => p.params.slug));
+
+  console.log('\n=== GENERATED PATHS ===');
+  paths.forEach(p => {
+    const slugValue = p.params.slug === undefined ? 'undefined (homepage)' : `"${p.params.slug}"`;
+    console.log(`  - slug: ${slugValue}`);
+  });
+
   return paths;
 }
 
 const { page } = Astro.props;
 const { data, body } = page;
+
+console.log(`\n=== RENDERING PAGE ===`);
+console.log(`Slug from params: ${Astro.params.slug || 'homepage'}`);
+console.log(`Page title: ${data?.title || 'Untitled'}`);
 ---
 
 <BaseLayout title={data?.title || 'Untitled'}>
