@@ -1,32 +1,54 @@
 ---
+// src/pages/[...slug].astro
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import TextBlock from '../components/Textblock.astro';
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  console.log('Total pages:', pages.length);
+  const azotea = await getCollection('kp-services');
+  
+  console.log('Total azotea pages:', azotea.length);
 
-  const paths = pages.map(page => {
-    const entrySlug = page.slug ?? (page.data && page.data.slug) ?? '';
-    const cleaned = entrySlug === '/' ? '' : String(entrySlug).replace(/^\/+|\/+$/g, '');
-    const slugParam = cleaned === '' ? undefined : cleaned; // string or undefined
+  const paths = azotea
+    .filter(page => {
+      const slug = page.slug || '';
+      // Filter out non-page files
+      return !slug.endsWith('.pdf') && 
+             !slug.endsWith('.xml') && 
+             slug !== 'sitemap' &&
+             slug !== 'permalinks';
+    })
+    .map(page => {
+      let entrySlug = page.slug || '';
+      
+      // Remove .html extension
+      entrySlug = entrySlug.replace(/\.html$/, '');
+      
+      // Handle homepage
+      if (entrySlug === 'index' || entrySlug === 'home' || entrySlug === '') {
+        console.log(`📄 Homepage: ${page.id}`);
+        return { 
+          params: { slug: undefined }, 
+          props: { page } 
+        };
+      }
 
-    console.log(`Processing page: ${page.id}`);
-    console.log(`  - Entry slug: "${entrySlug}" -> ${slugParam === undefined ? 'homepage' : `"${slugParam}"`}`);
+      // Split into segments
+      const segments = entrySlug.split('/').filter(s => s && s !== 'index');
+      
+      // FIX: For Astro 5.x, always pass as array for catch-all routes
+      // Even single segments should be in array format
+      console.log(`📄 Page: ${page.id} -> slug: [${segments.join(', ')}]`);
 
-    return {
-      params: { slug: slugParam },
-      props: { page },
-    };
-  });
+      return {
+        params: { slug: segments[0] },  // Always pass as array
+        props: { page },
+      };
+    });
 
   console.log('\n=== GENERATED PATHS ===');
-  paths.forEach(p => {
-    const slugValue = p.params.slug === undefined ? 'undefined (homepage)' : `"${p.params.slug}"`;
-    console.log(`  - slug: ${slugValue}`);
-  });
+  console.log(`Total valid paths: ${paths.length}`);
 
   return paths;
 }
@@ -34,8 +56,12 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 const { data, body } = page;
 
+// Get the slug from params (will be array or undefined)
+const slugParam = Astro.params.slug;
+const slugString = Array.isArray(slugParam) ? slugParam.join('/') : (slugParam || '');
+
 console.log(`\n=== RENDERING PAGE ===`);
-console.log(`Slug from params: ${Astro.params.slug || 'homepage'}`);
+console.log(`Slug from params: ${slugString || 'homepage'}`);
 console.log(`Page title: ${data?.title || 'Untitled'}`);
 ---
 
